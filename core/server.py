@@ -242,6 +242,24 @@ class ChatRequest(BaseModel):
     message: str
 
 
+@app.get("/")
+async def root():
+    """Route racine - Statut du serveur Bastet AI."""
+    return {
+        "status": "online",
+        "system": "Bastet AI V2",
+        "version": "2.0",
+        "endpoints": {
+            "chat": "POST /api/chat",
+            "tts": "POST /api/tts?enable=true|false",
+            "stt": "POST /api/stt?enable=true|false",
+            "vision": "POST /api/vision?enable=true|false",
+            "settings": "GET /api/settings",
+            "websocket": "WS /ws/status"
+        }
+    }
+
+
 @app.post("/api/chat")
 async def send_chat(req: ChatRequest):
     message = req.message.strip()
