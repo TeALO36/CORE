@@ -10,6 +10,8 @@ import time
 import asyncio
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import uvicorn
 import os
@@ -23,6 +25,11 @@ from .calendar import CalendarIntegration
 
 
 app = FastAPI(title="Bastet AI V2")
+
+# Serve the React frontend build
+_WEB_DIST = os.path.join(os.path.dirname(__file__), "..", "web", "dist")
+if os.path.exists(_WEB_DIST):
+    app.mount("/assets", StaticFiles(directory=os.path.join(_WEB_DIST, "assets")), name="assets")
 
 app.add_middleware(
     CORSMiddleware,
@@ -244,20 +251,24 @@ class ChatRequest(BaseModel):
 
 @app.get("/")
 async def root():
-    """Route racine - Statut du serveur Bastet AI."""
+    """Sert l'interface React (ou un JSON de fallback si le build n'existe pas)."""
+    index_path = os.path.join(os.path.dirname(__file__), "..", "web", "dist", "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
     return {
         "status": "online",
-        "system": "Bastet AI V2",
-        "version": "2.0",
-        "endpoints": {
-            "chat": "POST /api/chat",
-            "tts": "POST /api/tts?enable=true|false",
-            "stt": "POST /api/stt?enable=true|false",
-            "vision": "POST /api/vision?enable=true|false",
-            "settings": "GET /api/settings",
-            "websocket": "WS /ws/status"
-        }
+        "note": "Frontend non build. Lancez 'npm run build' dans web/",
+        "system": "Bastet AI V2"
     }
+
+
+@app.get("/{full_path:path}")
+async def spa_fallback(full_path: str):
+    """Renvoie index.html pour toutes les routes du SPA React (client-side routing)."""
+    index_path = os.path.join(os.path.dirname(__file__), "..", "web", "dist", "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return {"error": "Frontend non disponible"}
 
 
 @app.post("/api/chat")
