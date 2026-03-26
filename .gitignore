@@ -47,3 +47,6 @@ Desktop.ini
 *.avi
 *.mov
 *.mkv
+project_status.md
+config.json
+run_all.bat

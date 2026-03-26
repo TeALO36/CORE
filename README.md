@@ -1,119 +1,79 @@
-# CORE (Central Operating Recognition Engine) - Bastet V2
-
-**CORE** est le système nerveux central et distribué du robot **Bastet**.
-Il permet de déporter l'intelligence (LLM, Vision) sur des machines puissantes tout en contrôlant le robot à distance, avec une connectivité résiliente (Local/4G).
-
-## 🌍 Architecture Hybride "Grid"
-
-Le système est agnostique au réseau. Il fonctionne aussi bien en **LAN (WiFi sans internet)** qu'en **4G (via Relais)**.
-
-### 1. Les Nœuds du Système
-- **Hub (Cerveau Central)** : Orchestre tout. Héberge l'état du monde et l'interface Web.
-- **Vision Node (Yeux)** : Gère la caméra et l'analyse d'image (YOLO/FaceID). Déporté sur PC avec GPU.
-- **LLM Node (Conscience)** : Gère le modèle de langage (Llama 3, Mistral). Déporté sur un autre PC puissant.
-- **Robot Node (Corps)** : Le robot physique (ROS 2). Gère les moteurs, le micro et les haut-parleurs.
-
-### 2. Connectivité Intelligente
-Les nœuds se trouvent automatiquement grâce au **DiscoveryManager** :
-1.  **UDP Broadcast (Priorité 1)** : Si les appareils sont sur le même WiFi, ils se parlent directement (Latence < 5ms).
-2.  **Registre Distant (Priorité 2)** : Si le broadcast échoue, ils demandent au `Remote Server` l'IP locale de chacun.
-3.  **Relais WebSocket (Secours 4G)** : Si aucune connexion directe n'est possible (NAT, 4G vs WiFi), tout transite par le serveur distant (Latence ~100ms).
+<div align="center">
+  <h1>🤖 Bastet AI V2 - CORE & Simulation</h1>
+  <p><i>Le système nerveux central et distribué du robot quadrupède Bastet.</i></p>
+</div>
 
 ---
 
-## 🚀 Installation et Lancement
+## 📖 Présentation du Projet
+**Bastet CORE** est une architecture d'intelligence artificielle distribuée conçue pour contrôler un robot physique de type SpotMicro. Il permet de déporter les calculs lourds (Modèles de Langage, Vision par Ordinateur) sur des machines puissantes tout en pilotant le robot à distance (via réseau local ou relais 4G).
 
-### 1. Lancer le Hub (Chef d'Orchestre)
-Sur la machine principale (ex: ton PC ou le Robot si puissant) :
-```bash
-python main.py --role hub
-```
+Récemment, le projet a fusionné avec **SpotMicroAI** pour y inclure un environnement de simulation PyBullet, permettant à l'IA de s'entraîner et d'interagir virtuellement via réseau UDP avant le déploiement final sur le matériel matériel physique.
 
-### 2. Lancer un Nœud de Calcul
-Vous pouvez désormais lancer chaque service sur une machine dédiée :
-
-**Vision (Yeux)** :
-```bash
-python main.py --role vision --hub-ip auto
-```
-**Intelligence (Cerveau)** :
-```bash
-python main.py --role llm --hub-ip auto
-```
-**Parole (STT)** :
-```bash
-python main.py --role stt --hub-ip auto
-```
-**Synthèse (TTS)** :
-```bash
-python main.py --role tts --hub-ip auto
-```
-
-### 3. Lancer le Robot (ROS 2)
-Sur la Raspberry Pi / Jetson du robot :
-```bash
-cd robot
-docker-compose up --build
-```
-*Le robot va automatiquement chercher le Hub et s'y connecter.*
-
-### 4. Serveur Relais (Cloud)
-Adresse officielle : **bastet.arthonetwork.fr**
-Le code du dossier `remote_server` est déployé sur ce domaine pour gérer les connexions 4G.
-(Configuré dans `config.json` via `remote_server_url`).
+## 🎯 Fonctionnalités Clés
+- **IA Déportée (NVIDIA NIM)** : Le système utilise l'API cloud NVIDIA pour la prise de décision, avec des modèles ultra-rapides (Llama 3 Instruct), économisant ainsi la batterie et le calcul du robot.
+- **Vision & Voix Locales** : La reconnaissance faciale (YOLO) et les flux de parole audios (STT/TTS) tournent localement sur les PC du réseau.
+- **Routage Automatique** : Le serveur *Hub* découvre et associe automatiquement les nœuds de la grille via UDP Broadcast ou Websockets.
+- **Interface Web temps-réel** : Un dashboard complet en React permet de configurer l'IA, voir le flux caméra et l'historique de discussion localement depuis le navigateur.
+- **Simulation 3D intégrée** : Le dossier `simulation/` inclut le framework SpotMicroAI et PyBullet pour visualiser et tester la marche du quadrupède en direct !
 
 ---
 
-## 📂 Structure du Projet
+## ⚙️ Composants du Système
 
-- **`core/`** : Logique métier (Vision, IA, Serveur, Client WebSocket).
-- **`robot/`** : Environnement complet pour le robot (Docker ROS 2 + Bridge Python).
-- **`remote_server/`** : Code du serveur relais (à héberger sur le Cloud).
-- **`web/`** : Interface de contrôle React.
+L'architecture est hautement modulaire et repose sur différents **Nœuds (Nodes)** :
 
-## ✨ Fonctionnalités Avancées
-- **Auto-Switch Réseau** : Le robot peut passer de WiFi à 4G sans redémarrer le Core, grâce à la reconnexion automatique du `NodeClient`.
-- **Déport de Calcul Dynamique** : Vous pouvez lancer autant de nœuds "Vision" que vous voulez (ex: plusieurs caméras) ou changer de machine pour le LLM à la volée.
-
-## 🛡️ Sécurité & Cloud (Bastet Vault)
-
-Le système intègre un coffre-fort numérique hébergé sur le **Serveur Relais**.
-
-### 1. Synchronisation des Visages
-Au démarrage, le **Nœud Vision** télécharge les visages connus depuis le serveur distant.
-*   API : `GET /vault/faces`
-
-### 2. Scraping Sécurisé (MyGES)
-Les identifiants Intranet ne transitent **jamais** vers le LLM.
-1.  Vous stockez vos identifiants (chiffrés) sur le Serveur Relais.
-2.  Quand le Robot vous reconnaît, le Hub demande au Serveur de récupérer votre agenda/notes.
-3.  Le Serveur renvoie uniquement les **données** (pas le mot de passe).
-
-#### Enregistrer ses identifiants
-```bash
-curl -X POST "http://bastet.arthonetwork.fr:8000/vault/credentials" \
-     -H "Content-Type: application/json" \
-     -d '{"username": "Teano", "password": "MonMotDePasse"}'
-```
+1. **HUB (Port 8000)** : Le chef d'orchestre. Un serveur FastAPI avec WebSocket qui lie tous les nœuds et qui sert l'interface Web HTML/JS à l'utilisateur.
+2. **VISION** : Gère la webcam du robot, analyse l'image, reconnait les visages pré-enregistrés.
+3. **LLM (AI Agent)** : Connecté à NVIDIA NIM. Il ingère le contexte visuel ("Paul est devant toi"), l'agenda connecté de la cible (via intégration MyGES), et la requête vocale de l'utilisateur pour générer une réponse texte/voix, ainsi que des marqueurs de commandes physiques (Ex: `[CMD: avancer]`).
+4. **SIMULATION / ROBOT** : Reçoit silencieusement les ordres physiques (`AVANCER`, `STOP`) via un socket local en **UDP (Port 5005)** et résout les angles des moteurs (*PyBullet / Inverse Kinematics*).
 
 ---
 
-## 🛡️ Configuration Réseau & Ports
+## 🚀 Installation & Lancement
 
-Pour que les machines communiquent librement, ouvrez les ports suivants dans vos pare-feu (Windows Defender / UFW) :
+### 1. Prérequis
+- Python 3.10+
+- Node.js (pour compiler l'interface web si besoin)
+- Une clé API NVIDIA NIM (à placer dans `config.json` à la racine)
 
-### 1. Sur le PC "Hub" (Serveur Central)
-- **TCP 8000** : API HTTP & WebSocket (Communication avec tous les nœuds).
-- **UDP 37020** : Discovery (Pour que les nœuds trouvent le Hub automatiquement).
+```bash
+git clone <URL_DU_REPO>
+cd Bastet_CORE
+pip install -r requirements.txt
+```
 
-### 2. Sur le VPS "Serveur Relais" (bastet.arthonetwork.fr)
-- **TCP 8000** : Relais HTTP & WebSocket.
+### 2. Lancement en 1 Clic (Recommandé)
+Sous Windows, un script global est prêt pour vous :
+Double-cliquez sur le fichier **`run_all.bat`**.
 
-### 3. Sur TOUTES les machines (Robot, Vision, LLM)
-- **Sortant** : Autoriser tout le trafic sortant.
-- **WebRTC** : Autoriser le trafic **UDP** entrant/sortant sur les ports dynamiques (ou désactiver le pare-feu sur le réseau local de confiance) pour la vidéo en temps réel.
+Ce script va automatiquement :
+- Vérifier et compiler l'interface Web (React / Vite) si c'est le premier lancement.
+- Lancer le simulateur physique PyBullet dans une fenêtre (le robot apparaîtra stabilisé au sol).
+- Lancer le serveur Central CORE avec tous ses modules dans un autre terminal.
 
-> **Note** : En mode 4G (Relais), seul le port 8000 sortant vers le VPS est nécessaire.
+Une fois lancé, ouvrez [http://localhost:8000](http://localhost:8000) dans votre navigateur web pour accéder au Dashboard live !
+
+### 3. Lancement Manuel (Nœuds séparés)
+Si vous répartissez la charge sur plusieurs ordinateurs :
+- **Hub & IA** : `python main.py --role all`
+- **Simulateur 3D** : `python simulation/quadruped_pybullet_option_2.py`
+
+---
+
+## 🎮 Comment Tester la Simulation ?
+Dans le dashboard Web ou via commande vocale, incitez l'IA à avancer en disant par exemple :
+> *"Il y a quelqu'un devant toi, avance lui dire bonjour !"*
+
+L'intention est retranscrite en commande `[CMD: avancer]`, envoyée silencieusement au port UDP de PyBullet. **Le modèle 3D se mettra immédiatement au trot sous vos yeux !**
+
+---
+
+## 🛡️ Structure du Repository
+- **`core/`** : Logique métier (Vision locale, IA, Serveur API, Client WebSocket).
+- **`simulation/`** : Moteur PyBullet et scripts de tests d'équilibre / marche.
+- **`web/`** : Code source React/Vite de l'interface graphique.
+- **`robot/`** : (Optionnel) Environnement Docker ROS 2 pour le futur matériel réel (Jetson/Raspberry).
 
 ---
 *Projet Bastet V2 - Développé par Teano & Gemini*
