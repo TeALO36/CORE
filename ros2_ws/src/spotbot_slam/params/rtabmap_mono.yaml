@@ -1,0 +1,40 @@
+# rtabmap — Parametres monoculaire SpotBot
+# Tuned pour Raspberry Pi 5 (compromis performance/qualite)
+
+Vis/MinInliers: "10"
+Vis/MaxDepth: "0"
+Vis/FeatureType: "8"        # GFTT/BRIEF (rapide sur Pi)
+Vis/MaxFeatures: "500"
+Vis/GridRows: "1"
+Vis/GridCols: "1"
+
+RGBD/AngularUpdate: "0.05"
+RGBD/LinearUpdate: "0.05"
+RGBD/OptimizeFromGraphEnd: "false"
+RGBD/ProximityBySpace: "true"
+RGBD/ProximityPathMaxNeighbors: "10"
+
+Mem/STMSize: "30"
+Mem/RehearsalSimilarity: "0.45"
+Mem/BinDataKept: "false"    # economise memoire Pi 5
+
+Reg/Strategy: "0"           # 0=Visuel, 1=ICP, 2=Visuel+ICP
+Reg/Force3DoF: "true"       # robot sol -> 2D
+
+Optimizer/Strategy: "2"     # GTSAM
+Optimizer/Iterations: "20"
+
+Grid/RangeMin: "0.1"
+Grid/RangeMax: "5.0"
+Grid/CellSize: "0.05"
+Grid/3D: "false"
+
+# Topics camera
+subscribe_rgb: true
+subscribe_depth: false
+subscribe_stereo: false
+frame_id: "base_link"
+map_frame_id: "map"
+odom_frame_id: "odom"
+publish_tf: true
+tf_delay: 0.05

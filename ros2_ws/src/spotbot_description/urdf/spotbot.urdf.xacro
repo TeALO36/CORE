@@ -1,0 +1,188 @@
+<?xml version="1.0"?>
+<!--
+  SpotBot URDF — SpotMicro 12-DOF Quadruped
+  Adapte pour ROS 2 Jazzy depuis spotMicro-master
+
+  Joints:
+    Front Right (FR): fr_abad, fr_upperleg, fr_lowerleg
+    Front Left  (FL): fl_abad, fl_upperleg, fl_lowerleg
+    Back  Right (BR): br_abad, br_upperleg, br_lowerleg
+    Back  Left  (BL): bl_abad, bl_upperleg, bl_lowerleg
+-->
+<robot name="spotbot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ===== Proprietes ===== -->
+  <xacro:property name="body_length"  value="0.285"/>
+  <xacro:property name="body_width"   value="0.097"/>
+  <xacro:property name="body_height"  value="0.065"/>
+  <xacro:property name="leg_radius"   value="0.012"/>
+  <xacro:property name="abad_length"  value="0.060"/>
+  <xacro:property name="upper_length" value="0.111"/>
+  <xacro:property name="lower_length" value="0.118"/>
+  <xacro:property name="mass_body"    value="1.000"/>
+  <xacro:property name="mass_leg"     value="0.100"/>
+
+  <!-- ===== Materiaux ===== -->
+  <material name="dark_grey"><color rgba="0.2 0.2 0.2 1"/></material>
+  <material name="orange">   <color rgba="1.0 0.5 0.0 1"/></material>
+  <material name="white">    <color rgba="1.0 1.0 1.0 1"/></material>
+
+  <!-- ===== Corps principal ===== -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="${body_length} ${body_width} ${body_height}"/>
+      </geometry>
+      <material name="dark_grey"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${body_length} ${body_width} ${body_height}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${mass_body}"/>
+      <inertia ixx="0.005" ixy="0" ixz="0" iyy="0.010" iyz="0" izz="0.012"/>
+    </inertial>
+  </link>
+
+  <!-- ===== IMU Link ===== -->
+  <link name="imu_link">
+    <visual>
+      <geometry><box size="0.02 0.02 0.005"/></geometry>
+      <material name="orange"/>
+    </visual>
+    <inertial>
+      <mass value="0.005"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+    </inertial>
+  </link>
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <origin xyz="0 0 0.03" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ===== Camera Link ===== -->
+  <link name="camera_link">
+    <visual>
+      <geometry><box size="0.025 0.025 0.025"/></geometry>
+      <material name="white"/>
+    </visual>
+    <inertial>
+      <mass value="0.010"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+    </inertial>
+  </link>
+  <joint name="camera_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+    <origin xyz="${body_length/2} 0 0.02" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ===== Macro pour une patte ===== -->
+  <xacro:macro name="leg" params="prefix x_sign y_sign reflect">
+
+    <!-- Abad link -->
+    <link name="${prefix}_abad_link">
+      <visual>
+        <geometry><cylinder radius="${leg_radius}" length="${abad_length}"/></geometry>
+        <material name="dark_grey"/>
+      </visual>
+      <collision>
+        <geometry><cylinder radius="${leg_radius}" length="${abad_length}"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="${mass_leg}"/>
+        <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-5"/>
+      </inertial>
+    </link>
+
+    <joint name="${prefix}_abad_joint" type="revolute">
+      <parent link="base_link"/>
+      <child link="${prefix}_abad_link"/>
+      <origin xyz="${x_sign * body_length/2 * 0.8} ${y_sign * (body_width/2 + abad_length/2)} 0" rpy="0 0 0"/>
+      <axis xyz="1 0 0"/>
+      <limit lower="-0.7" upper="0.7" effort="10" velocity="5"/>
+    </joint>
+
+    <!-- Upper leg link -->
+    <link name="${prefix}_upper_link">
+      <visual>
+        <origin xyz="0 0 ${-upper_length/2}"/>
+        <geometry><cylinder radius="${leg_radius}" length="${upper_length}"/></geometry>
+        <material name="orange"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${-upper_length/2}"/>
+        <geometry><cylinder radius="${leg_radius}" length="${upper_length}"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="${mass_leg}"/>
+        <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-5"/>
+      </inertial>
+    </link>
+
+    <joint name="${prefix}_upper_joint" type="revolute">
+      <parent link="${prefix}_abad_link"/>
+      <child link="${prefix}_upper_link"/>
+      <origin xyz="0 ${y_sign * abad_length/2} 0" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-1.5" upper="1.5" effort="10" velocity="5"/>
+    </joint>
+
+    <!-- Lower leg link -->
+    <link name="${prefix}_lower_link">
+      <visual>
+        <origin xyz="0 0 ${-lower_length/2}"/>
+        <geometry><cylinder radius="${leg_radius * 0.8}" length="${lower_length}"/></geometry>
+        <material name="dark_grey"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${-lower_length/2}"/>
+        <geometry><cylinder radius="${leg_radius * 0.8}" length="${lower_length}"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="${mass_leg * 0.5}"/>
+        <inertia ixx="5e-5" ixy="0" ixz="0" iyy="5e-5" iyz="0" izz="1e-6"/>
+      </inertial>
+    </link>
+
+    <joint name="${prefix}_lower_joint" type="revolute">
+      <parent link="${prefix}_upper_link"/>
+      <child link="${prefix}_lower_link"/>
+      <origin xyz="0 0 ${-upper_length}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-2.5" upper="0.1" effort="10" velocity="5"/>
+    </joint>
+
+    <!-- Foot link -->
+    <link name="${prefix}_foot_link">
+      <visual>
+        <geometry><sphere radius="0.015"/></geometry>
+        <material name="white"/>
+      </visual>
+      <collision>
+        <geometry><sphere radius="0.015"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="0.020"/>
+        <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+      </inertial>
+    </link>
+
+    <joint name="${prefix}_foot_joint" type="fixed">
+      <parent link="${prefix}_lower_link"/>
+      <child link="${prefix}_foot_link"/>
+      <origin xyz="0 0 ${-lower_length}"/>
+    </joint>
+
+  </xacro:macro>
+
+  <!-- ===== Instanciation des 4 pattes ===== -->
+  <xacro:leg prefix="fr" x_sign=" 1" y_sign="-1" reflect="1"/>
+  <xacro:leg prefix="fl" x_sign=" 1" y_sign=" 1" reflect="-1"/>
+  <xacro:leg prefix="br" x_sign="-1" y_sign="-1" reflect="1"/>
+  <xacro:leg prefix="bl" x_sign="-1" y_sign=" 1" reflect="-1"/>
+
+</robot>

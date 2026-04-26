@@ -1,0 +1,40 @@
+# rtabmap — Parametres stereo SpotBot
+# Tuned pour Raspberry Pi 5
+
+Vis/MinInliers: "15"
+Vis/MaxDepth: "10.0"
+Vis/MinDepth: "0.1"
+Vis/FeatureType: "8"
+Vis/MaxFeatures: "600"
+
+Stereo/MinDisparity: "1"
+Stereo/MaxDisparity: "128"
+Stereo/OpticalFlow: "true"
+
+RGBD/AngularUpdate: "0.05"
+RGBD/LinearUpdate: "0.05"
+RGBD/OptimizeFromGraphEnd: "false"
+RGBD/ProximityBySpace: "true"
+
+Mem/STMSize: "30"
+Mem/BinDataKept: "false"
+
+Reg/Strategy: "0"
+Reg/Force3DoF: "true"
+
+Optimizer/Strategy: "2"
+Optimizer/Iterations: "20"
+
+Grid/RangeMin: "0.2"
+Grid/RangeMax: "10.0"
+Grid/CellSize: "0.05"
+Grid/3D: "false"
+
+subscribe_stereo: true
+subscribe_depth: false
+subscribe_rgb: false
+frame_id: "base_link"
+map_frame_id: "map"
+odom_frame_id: "odom"
+publish_tf: true
+tf_delay: 0.05

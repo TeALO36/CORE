@@ -1,0 +1,27 @@
+# ROS 2 build
+build/
+install/
+log/
+*.pyc
+__pycache__/
+*.egg-info/
+
+# Cartes rtabmap
+*.db
+
+# Logs
+*.log
+
+# Arduino compiled
+*.hex
+*.elf
+*.eep
+
+# Config locale
+.env
+config/local_*.yaml
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace

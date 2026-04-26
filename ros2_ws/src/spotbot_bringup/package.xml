@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>spotbot_bringup</name>
+  <version>1.0.0</version>
+  <description>SpotBot main bringup package — launch files for the full system</description>
+  <maintainer email="spotbot@robot.local">SpotBot</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>ros2launch</exec_depend>
+  <exec_depend>spotbot_description</exec_depend>
+  <exec_depend>spotbot_motion</exec_depend>
+  <exec_depend>spotbot_arduino_bridge</exec_depend>
+  <exec_depend>usb_cam</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
