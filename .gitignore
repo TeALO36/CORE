@@ -25,3 +25,4 @@ config/local_*.yaml
 .vscode/
 .idea/
 *.code-workspace
+spot_mini_mini*.zip
