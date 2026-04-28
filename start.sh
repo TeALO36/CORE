@@ -5,6 +5,10 @@
 LOG=/var/log/spotbot
 mkdir -p $LOG
 
+# Fix HOME for ROS logging
+export HOME=/root
+mkdir -p /root/.ros/log
+
 source /opt/ros2_jazzy/install/setup.bash
 source /opt/spotbot/ros2_ws/install/setup.bash
 
@@ -43,12 +47,20 @@ ros2 run rtabmap_slam rtabmap --ros-args \
 echo "[SpotBot] SLAM OK" | tee -a $LOG/startup.log
 sleep 2
 
-# 4. Arduino (best-effort, don't fail if absent)
-if [ -e /dev/ttyACM0 ] || [ -e /dev/arduino ]; then
+# 4. Arduino (auto-detect port, don't pass empty string)
+if [ -e /dev/arduino ]; then
+    ARDUINO_PORT=/dev/arduino
+elif [ -e /dev/ttyACM0 ]; then
+    ARDUINO_PORT=/dev/ttyACM0
+else
+    ARDUINO_PORT=""
+fi
+
+if [ -n "$ARDUINO_PORT" ]; then
     ros2 run spotbot_arduino_bridge arduino_bridge_node --ros-args \
-      -p port:="" -p baudrate:=115200 -p auto_flash:=false \
+      -p baudrate:=115200 -p auto_flash:=false \
       >> $LOG/arduino.log 2>&1 &
-    echo "[SpotBot] Arduino OK" | tee -a $LOG/startup.log
+    echo "[SpotBot] Arduino OK ($ARDUINO_PORT)" | tee -a $LOG/startup.log
 else
     echo "[SpotBot] No Arduino detected" | tee -a $LOG/startup.log
 fi
@@ -60,5 +72,5 @@ echo "[SpotBot] ROSboard OK (:8888)" | tee -a $LOG/startup.log
 
 echo "[SpotBot] $(date) — Ready!" | tee -a $LOG/startup.log
 
-# Keep service alive (infinite)
+# Keep alive
 while true; do sleep 3600; done
