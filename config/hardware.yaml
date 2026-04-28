@@ -1,0 +1,76 @@
+# ============================================
+#  SpotBot Hardware Configuration
+#  Bastet — Raspberry Pi 5 (16 GB)
+# ============================================
+
+# --- Caméra USB ---
+camera:
+  enabled: true
+  device: /dev/video0
+  width: 640
+  height: 480
+  framerate: 15
+  format: yuyv2rgb
+  frame_id: camera_link
+  calibration: /opt/spotbot/config/camera_calibration.yaml
+
+# --- Arduino Mega 2560 (via USB) ---
+arduino:
+  enabled: true
+  port: /dev/arduino      # Symlink udev → /dev/ttyACM0
+  baudrate: 115200
+  protocol: json_serial    # JSON bidirectionnel USB
+  sensors:
+    - imu_bno085           # BNO085 (quaternion fusionné)
+    - ultrasonic_hcsr04    # HC-SR04 front
+  actuators:
+    - servo_x12            # 12 servos (3 par patte)
+
+# --- WiFi (basculement multi-cartes) ---
+wifi:
+  primary: wlan0           # Carte intégrée RPi5
+  secondary: ""            # [FUTUR] Carte USB WiFi #2
+  tertiary: ""             # [FUTUR] Carte USB WiFi #3
+  failover_enabled: true
+  ssid: TeALO
+  check_interval_sec: 10
+  ping_gateway: 192.168.0.1
+
+# --- GPS / Magnétomètre (OPTIONNEL) ---
+# ⚠ OPTIONNEL — Non installé actuellement
+# En intérieur le GPS sera très imprécis / sans fix
+# Le magnétomètre peut être perturbé par les moteurs/servos
+gps:
+  enabled: false            # ← Mettre à true quand installé
+  device: ""                # Ex: /dev/ttyUSB1 ou I2C
+  module: ""                # Ex: NEO-6M, NEO-M8N, BN-880
+  baudrate: 9600
+  frame_id: gps_link
+  ros_topic: /gps/fix       # sensor_msgs/NavSatFix
+  notes: |
+    Le GPS ne fonctionnera pas en intérieur.
+    Prévoir une antenne externe pour l'extérieur.
+    Le topic sera publié mais les données seront vides indoor.
+
+magnetometer:
+  enabled: false            # ← Mettre à true quand installé
+  device: ""                # Ex: I2C (souvent couplé au GPS sur BN-880)
+  module: ""                # Ex: QMC5883L, HMC5883L, intégré BN-880
+  frame_id: mag_link
+  ros_topic: /mag           # sensor_msgs/MagneticField
+  declination_deg: 1.5      # Déclinaison magnétique Paris ~1.5°
+  notes: |
+    Le magnétomètre est très sensible aux interférences
+    électromagnétiques des servos et du Pi.
+    Calibration obligatoire après installation.
+    En intérieur, les données seront souvent bruitées/inutilisables.
+    Utiliser uniquement en extérieur après calibration.
+
+# --- Extensions futures ---
+lidar:
+  enabled: false
+  notes: "Non prévu actuellement"
+
+depth_camera:
+  enabled: false
+  notes: "Remplacerait la caméra mono pour un vrai SLAM 3D"

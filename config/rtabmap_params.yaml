@@ -1,0 +1,31 @@
+rtabmap:
+  ros__parameters:
+    subscribe_depth: false
+    subscribe_rgb: true
+    subscribe_stereo: false
+    subscribe_odom_info: false
+    odom_sensor_sync: false
+    frame_id: "base_link"
+    map_frame_id: "map"
+    odom_frame_id: "odom"
+    publish_tf: true
+    approx_sync: true
+    wait_for_transform: 0.2
+    database_path: "/home/tpierson/.ros/spotbot_map.db"
+    "Vis/MinInliers": "10"
+    "Vis/MaxDepth": "0"
+    "Vis/FeatureType": "8"
+    "Vis/MaxFeatures": "500"
+    "RGBD/AngularUpdate": "0.01"
+    "RGBD/LinearUpdate": "0.01"
+    "RGBD/OptimizeFromGraphEnd": "false"
+    "Mem/STMSize": "30"
+    "Mem/RehearsalSimilarity": "0.45"
+    "Mem/BinDataKept": "false"
+    "Mem/IncrementalMemory": "true"
+    "Reg/Strategy": "0"
+    "Reg/Force3DoF": "true"
+    "Optimizer/Strategy": "1"
+    "Optimizer/Iterations": "20"
+    "Grid/3D": "false"
+    "Rtabmap/DetectionRate": "1.0"
